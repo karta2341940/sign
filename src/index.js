@@ -1,10 +1,20 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer';
+import fs, { write } from 'fs'
 
-(async () => {
-    // Launch the browser and open a new blank page
+/**
+ * @returns {Browser}
+ */
+async function main() {
+    /**
+     * @type {Browser}
+     */
     const browser = await puppeteer.launch({
         headless: false
     });
+
+    /**
+     * @type {Page}
+     */
     const page = await browser.newPage();
 
     // Navigate the page to a URL
@@ -12,23 +22,24 @@ import puppeteer from 'puppeteer';
 
     // Set screen size
     await page.setViewport({ width: 1080, height: 1024 });
+    writeConfig("Config")
+    setTimeout(async browser => await browser.close(), 10000, browser);
+}
 
-    // Type into search box
-    await page.type('.search-box__input', 'automate beyond recorder');
+/**
+ * 
+ * @param {String} str 
+ * @returns { Boolean }
+ */
+function writeConfig(str) {
+    try {
+        fs.writeFileSync("./config", str, { encoding: "utf-8" });
+    }
+    catch (err) {
+        if (err) return false
+    }
+    return true
+}
 
-    // Wait and click on first result
-    const searchResultSelector = '.search-box__link';
-    await page.waitForSelector(searchResultSelector);
-    await page.click(searchResultSelector);
 
-    // Locate the full title with a unique string
-    const textSelector = await page.waitForSelector(
-        'text/Customize and automate'
-    );
-    const fullTitle = await textSelector?.evaluate(el => el.textContent);
-
-    // Print the full title
-    console.log('The title of this blog post is "%s".', fullTitle);
-
-      await browser.close();
-})();
+main();
